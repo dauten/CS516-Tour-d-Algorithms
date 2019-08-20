@@ -42,10 +42,25 @@ int* mergeSort(int* array, int length){
       right[i-(length/2)] = array[i];
   }
 
-  left = mergeSort(left, length/2);
-  right = mergeSort(right, length/2 + length%2);
-
-  return merge(left, right, length/2 + length%2, length/2);
+  if(length > 1000){
+    #pragma omp task shared(left)
+    {
+      left = mergeSort(left, length/2);
+    }
+    #pragma omp task shared(right)
+    {
+      right = mergeSort(right, length/2 + length%2);
+    }
+    #pragma omp taskwait
+    {
+      return merge(left, right, length/2 + length%2, length/2);
+    }
+  }
+  else{
+    left = mergeSort(left, length/2);
+    right = mergeSort(right, length/2 + length%2);
+    return merge(left, right, length/2 + length%2, length/2);
+  }
 }
 
 // create an array of length size of random numbers// returns a pointer to the array3
@@ -102,14 +117,25 @@ int main(int argc, char** argv )
   /**************************/
   printf("\n");
   //free(array);
-  array = mergeSort(array, size);
+
+  #pragma omp parallel
+  {
+    #pragma omp single
+    {
+      array = mergeSort(array, size);
+    }
+  }
+
+
+
 
   printf("\n");
-
+/*
   for(int i = 0; i < size; i++)
   {
     printf("%d ", array[i]);
   }
+  */
   // delete the heap memory
   delete [] array;
 }
