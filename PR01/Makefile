@@ -1,19 +1,7 @@
-### Basic Makefile for OpenMP (fromhttps://www.linuxtoday.com/blog/openmp-in-30-minutes.html) 
 
-CC = gcc
-CFLAGS = -g -O0 -fopenmp
-LD = gcc
-LDFLAGS = -g -fopenmp
-
-PROGRAM = openmp
-
-all:	${PROGRAM}.exe
-
-${PROGRAM}.exe: ${PROGRAM}.o
-	${LD} ${LDFLAGS} $< -o ${PROGRAM}.exe
-
-${PROGRAM}.o: ${PROGRAM}.c
-	${CC} ${CFLAGS} -c $< -o ${PROGRAM}.o
-
-clean:
-	rm -f ${PROGRAM}.o ${PROGRAM}.exe
+all:
+	g++ mss.cpp -fopenmp -o mss.o
+	g++ msp.cpp -fopenmp -o msp.o
+	g++ qss.cpp -fopenmp -o qss.o
+	g++ qsp.cpp -fopenmp -o qsp.o
+	g++ stl.cpp -fopenmp -o stl.o
