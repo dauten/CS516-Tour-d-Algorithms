@@ -5,47 +5,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int* merge(int* left, int* right, int rl, int ll){
-  int* result = new int[rl + ll];
 
-  int r = 0;
-  int l = 0;
-  for(int i = 0; i < rl+ll; i++){
-    if((left[l] < right[r] && l < ll) || r >= rl)
-    {
-      result[i] = left[l];
-      l++;
+int partition(int* array, int low, int high){
+    int pivot = array[high]; //set last item as pivot
+    int i = low;
+    int t = 0;
+    int j;
+    for(j = low; j <= high - 1; j++){
+      if(array[j] < pivot){
+        t = array[i];
+        array[i] = array[j];
+        array[j] = t;
+        i++;
+      }
     }
-    else
-    {
-      result[i] = right[r];
-      r++;
-    }
-  }
-
-  return result;
+    t = array[i];
+    array[i] = array[j];
+    array[j] = t;
+    return i;
 }
 
-int* mergeSort(int* array, int length){
+void quickSort(int* array, int low, int high){
 
-  if(length <= 1){
-    return array;
+  if( low < high )
+  {
+    int p = partition(array, low, high);
+    quickSort(array, low, p-1);
+    quickSort(array, p+1, high);
   }
-
-  int* left = new int[length/2];
-  int* right = new int[length/2 + length%2];
-
-  for(int i = 0; i < length; i++){
-    if(i < length/2)
-      left[i] = array[i];
-    else
-      right[i-(length/2)] = array[i];
-  }
-
-  left = mergeSort(left, length/2);
-  right = mergeSort(right, length/2 + length%2);
-
-  return merge(left, right, length/2 + length%2, length/2);
 }
 
 // create an array of length size of random numbers// returns a pointer to the array3
@@ -102,7 +89,7 @@ int main(int argc, char** argv )
   /**************************/
   printf("\n");
   //free(array);
-  array = mergeSort(array, size);
+  quickSort(array, 0, size-1);
 
   printf("\n");
 /*
@@ -110,7 +97,7 @@ int main(int argc, char** argv )
   {
     printf("%d ", array[i]);
   }
-  */
+*/
   // delete the heap memory
   delete [] array;
 }
