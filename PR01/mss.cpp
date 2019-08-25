@@ -4,6 +4,7 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <chrono>
 
 int* merge(int* left, int* right, int rl, int ll){
   int* result = new int[rl + ll];
@@ -87,30 +88,39 @@ int main(int argc, char** argv )
   // get the random numbers
   array = randNumArray( size, seed );
 
-/*
-  for(int i = 0; i < size; i++)
-  {
-    printf("%d ", array[i]);
-  }
-*/
-  //**************************/
-  /**************************/
-  /**************************/
-  ///  YOUR CODE HERE !!!///
-  /**************************/
-  /**************************/
-  /**************************/
-  printf("\n");
-  //free(array);
-  array = mergeSort(array, size);
+  printf("Array to sort is:\n");
 
-  printf("\n");
-/*
+  /*
   for(int i = 0; i < size; i++)
   {
     printf("%d ", array[i]);
   }
   */
+
+  printf("Beginning sort, and timing.\n");
+
+  auto startTime = std::chrono::high_resolution_clock::now();
+
+
+  array = mergeSort(array, size);
+
+  auto endTime = std::chrono::high_resolution_clock::now();
+
+
+  printf("Timing complete.  Printing Sorted Results.\n");
+
+  /*
+  for(int i = 0; i < size; i++)
+  {
+    printf("%d ", array[i]);
+  }
+  */
+
+  printf("\nTotal execution time is: %d ms\n", (endTime-startTime)/1000000);
+
+
+
+
   // delete the heap memory
   delete [] array;
 }

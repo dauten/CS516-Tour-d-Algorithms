@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-
+#include <chrono>
 
 
 std::vector<int> bubbleSort(std::vector<int> vector){
@@ -117,20 +117,6 @@ int main(int argc, char** argv )
   // get the random numbers
   array = randNumArray( size, seed );
 
-/*
-  for(int i = 0; i < size; i++)
-  {
-    printf("%d ", array[i]);
-  }
-*/
-  //**************************/
-  /**************************/
-  /**************************/
-  ///  YOUR CODE HERE !!!///
-  /**************************/
-  /**************************/
-  /**************************/
-  printf("\n");
   //free(array);
   int bsize = 0;
   if(size < 300000){
@@ -139,16 +125,35 @@ int main(int argc, char** argv )
   else{
     bsize = 300000;
   }
-  array = bucketSort(array, bsize, size);
 
-  printf("\n");
+  printf("Array to sort is:\n");
 
-/*
+  /*
   for(int i = 0; i < size; i++)
   {
     printf("%d ", array[i]);
   }
-*/
+  */
+
+  printf("Beginning sort, and timing.\n");
+
+  auto startTime = std::chrono::high_resolution_clock::now();
+
+  array = bucketSort(array, bsize, size);
+
+  auto endTime = std::chrono::high_resolution_clock::now();
+  printf("Timing complete.  Printing Sorted Results.\n");
+
+  /*
+  for(int i = 0; i < size; i++)
+  {
+    printf("%d ", array[i]);
+  }
+  */
+
+  printf("\nTotal execution time is: %d ms\n", (endTime-startTime)/1000000);
+
+
   // delete the heap memory
   delete [] array;
 }
