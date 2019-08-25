@@ -6,3 +6,4 @@ all:
 	g++ qsp.cpp -fopenmp -o qsp.o
 	g++ stl.cpp -fopenmp -o stl.o
 	g++ bbs.cpp -fopenmp -o bbs.o
+	g++ bbp.cpp -fopenmp -o bbp.o

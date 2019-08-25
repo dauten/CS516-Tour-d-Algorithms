@@ -74,12 +74,12 @@ int main(int argc, char** argv )
   // get the random numbers
   array = randNumArray( size, seed );
 
-
+/*
   for(int i = 0; i < size; i++)
   {
     printf("%d ", array[i]);
   }
-
+*/
   //**************************/
   /**************************/
   /**************************/
@@ -92,12 +92,12 @@ int main(int argc, char** argv )
   quickSort(array, 0, size-1);
 
   printf("\n");
-
+/*
   for(int i = 0; i < size; i++)
   {
     printf("%d ", array[i]);
   }
-
+*/
   // delete the heap memory
   delete [] array;
 }

@@ -49,8 +49,6 @@ int* bucketSort(int* array, int k, int size){
     for(i = 0; i < size; i++)
     {
       long long unsigned int index = k*((double)array[i]/max);
-
-    //  printf("adding to index:%d\n", index);
       buckets[index].push_back(array[i]); //insert item into appropriate bucket
     }
 
@@ -58,24 +56,29 @@ int* bucketSort(int* array, int k, int size){
 
     for(i = 0; i < k; i++){
 
-      if(buckets[i].size() > 1)
-        buckets[i] = bubbleSort(buckets[i]);
-
+      if(buckets[i].size() > 1){
+        #pragma omp task shared(buckets)
+        {
+          buckets[i] = bubbleSort(buckets[i]);
+        }
+      }
     }
 
     printf("done with sorting\n");
 
-    int t = 0;
-    for(i = 0; i < k; i++){
-      for(int y = 0; y < buckets[i].size(); y++){
+    #pragma omp taskwait
+    {
+      int t = 0;
+      for(i = 0; i < k; i++){
+        for(int y = 0; y < buckets[i].size(); y++){
 
-        array[t] = buckets[i][y];
-        t++;
+          array[t] = buckets[i][y];
+          t++;
+        }
       }
+
+      return array;
     }
-
-    return array;
-
 }
 
 // create an array of length size of random numbers// returns a pointer to the array3
@@ -139,8 +142,13 @@ int main(int argc, char** argv )
   else{
     bsize = 300000;
   }
-  array = bucketSort(array, bsize, size);
-
+  #pragma omp parallel
+  {
+    #pragma omp single
+    {
+      array = bucketSort(array, bsize, size);
+    }
+  }
   printf("\n");
 
 /*
