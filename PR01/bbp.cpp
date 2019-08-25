@@ -46,6 +46,7 @@ int* bucketSort(int* array, int k, int size){
 
     printf("beginning distributing\n");
 
+    #pragma omp parallel for
     for(i = 0; i < size; i++)
     {
       long long unsigned int index = k*((double)array[i]/max);

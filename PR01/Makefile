@@ -1,9 +1,9 @@
 
 all:
-	g++ mss.cpp -fopenmp -o mss.o
-	g++ msp.cpp -fopenmp -o msp.o
-	g++ qss.cpp -fopenmp -o qss.o
-	g++ qsp.cpp -fopenmp -o qsp.o
-	g++ stl.cpp -fopenmp -o stl.o
-	g++ bbs.cpp -fopenmp -o bbs.o
-	g++ bbp.cpp -fopenmp -o bbp.o
+	g++ mss.cpp -fopenmp -o mss
+	g++ msp.cpp -fopenmp -o msp
+	g++ qss.cpp -fopenmp -o qss
+	g++ qsp.cpp -fopenmp -o qsp
+	g++ reference.cpp -fopenmp -o reference
+	g++ bbs.cpp -fopenmp -o bbs
+	g++ bbp.cpp -fopenmp -o bbp
