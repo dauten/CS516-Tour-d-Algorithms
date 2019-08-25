@@ -5,3 +5,4 @@ all:
 	g++ qss.cpp -fopenmp -o qss.o
 	g++ qsp.cpp -fopenmp -o qsp.o
 	g++ stl.cpp -fopenmp -o stl.o
+	g++ bbs.cpp -fopenmp -o bbs.o
