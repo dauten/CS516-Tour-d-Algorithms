@@ -96,17 +96,19 @@ int * makeRandArray( const int size, const int seed )
 //*******************************//
 // In place radix sort           //
 //*******************************//
-__global__ void matavgKernel(int* array, int size, int *out)
+__global__ void matavgKernel(int* array, const int S, int *out)
 {
+
+	const int size = S;
 	int max = array[0];
-	for(int i = 1; i < 15; i++)
+	for(int i = 1; i < size; i++)
 	{
 		if(array[i] > max)
 			max = array[i];
 	}
 
 	for(int exp = 1; max/exp > 0; exp *= 10){
-		int output[15];
+		int *output = (int *)malloc(sizeof(int)*size);
 		int i, count[10] = {0};
 		for(i = 0; i < size; i++){
 			count[ (array[i]/exp)%10 ]++;
@@ -120,9 +122,11 @@ __global__ void matavgKernel(int* array, int size, int *out)
 		}
 
 		//copy output back into array
-		for(i = 0; i < 15; i++){
-			array[i] = output[i];
+		for(i = 0; i < size; i++){
+			out[i] = output[i];
+			array[i] = out[i];
 		}
+
 	}
 }
 
@@ -216,16 +220,16 @@ int main( int argc, char * argv[] )
 
 
 	//STEP 4
-	dim3 threadsPerBlock(1, 1, 1);
-	dim3 numBlocks((size +threadsPerBlock.x-1) / threadsPerBlock.x, (size +threadsPerBlock.y-1) / threadsPerBlock.y);
+	//dim3 threadsPerBlock(1, 1);
+	//dim3 numBlocks((size +threadsPerBlock.x-1) / threadsPerBlock.x, (size +threadsPerBlock.y-1) / threadsPerBlock.y);
 
 
 	//STEP 5
-	matavgKernel<<< numBlocks, threadsPerBlock>>> ( device_nums, size, device_count );
+	matavgKernel<<< 1, 1>>> ( device_nums, size, device_count );
 
 
 	int totalFound;
-	cudaMemcpy( &array, device_count, sizeof(int), cudaMemcpyDeviceToHost );
+	cudaMemcpy( array, device_nums, size*sizeof(int), cudaMemcpyDeviceToHost );
 
 	
 
