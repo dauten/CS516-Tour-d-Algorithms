@@ -91,7 +91,8 @@ int * makeRandArray( const int size, const int seed )
 }
 
 
-
+const int blockSizeRows = 32;
+const int blockSizeCols = 32;
 
 //*******************************//
 // In place radix sort           //
@@ -100,16 +101,20 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 {
 
 	const int size = S;
-	int max = array[0];
+	__shared__ int max;
+	max = array[0];
 
-	//find largest item in array so we know how many digits there are
-	for(int i = 1; i < size; i++)
-	{
-		if(array[i] > max)
-			max = array[i];
+
+	if(threadIdx.x == 0 && threadIdx.y == 0){
+		//find largest item in array so we know how many digits there are
+		for(int i = 1; i < size; i++)
+		{
+			if(array[i] > max)
+				max = array[i];
+		}
 	}
 
-
+	__syncthreads();
 	//go through each digit
 	for(int exp = 1; max/exp > 0; exp *= 10){
 		int *output = (int *)malloc(sizeof(int)*size);
@@ -117,31 +122,83 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 		int i = 0;
 		
 		//array of size ten, for each possible value at this digit		
-		int *count = (int *)malloc(sizeof(int)*10);
+		__shared__ int Scount[10][blockSizeRows][blockSizeCols];
+		__shared__ int *count;
+		count  = (int *)malloc(sizeof(int)*10);
+
+
+		//printf("This thread's x is %d\n", threadIdx.x);
+
+		//each thread should have a min index and a max index, such that
+		//when put together they cover the domain [0, size-1]
+		int tmin = ((threadIdx.x)*32) + threadIdx.y;
+		int tmax = tmin + 31;
+		//there should be 1024 threads in total.  smalles tmin is 0, largest tmax is 1023
+		//also tmake should always be 31 higher than tmin (tmax = ((threadIdx.x+1)*32)+threadIdx.y-1, specifically)
+		int min = ((double)tmin/(double)tmax) * size;
+		int max = ((double)tmax/((double)tmax+31)) * size;
+
+		//printf("this thread will go from %d to %d because tmin is %d and tmax is %d\n", min, max, tmin, tmax);
 
 		//get the count of how many items have each possible value at this digit
 		//(ie number of "2"s, "3"s, etc.)
-		//this is the part that will be parallelized for the multithreading version
-		for(i = 0; i < size; i++){
-			count[ (array[i]/exp)%10 ]++;
-		}
+		if(min < S)
+		//{
 
-		//aggregate previous values into count, getting a count of values that size and smaller at digit exp.
-		for(i = 1; i < 10; i++){
-			count[i] += count[i - 1];
-		}
+			//const int item1 = array[aIndex];
+			//printf("thread %d,%d is starting from %d\n", threadIdx.x, threadIdx.y);
+			for(i = min; i < max && i < S; i++){
+				Scount[ (array[i]/exp)%10 ][threadIdx.x][threadIdx.y]++;
+				//printf("Scount[%d][%d][%d] is %d\n", (array[i]/exp)%10, threadIdx.x, 0);
+			}
+		//}
 
-		//based off known number of items in each location, copy things into output sorted by index exp
-		for(i = size-1; i >= 0; i--){
-			output[count[ (array[i]/exp)%10 ] - 1] = array[i];
-			count[ (array[i]/exp)%10 ]--;
-		}
+		printf("about to sync...\n");
+		__syncthreads();
+		//printf("sync complete...\n");
 
-		//copy back into original array so ordering of this digit is preserved for future iterations
-		for(i = 0; i < size; i++){
-			array[i] = output[i];
-			
+		//if this is thread(0,0) then do the single threaded portion of the code
+		if(threadIdx.x == 0 && threadIdx.y == 0)
+		{
+			printf("sync complete!\n");
+			printf("aggregating...\n");
+			//go through shared list and aggregate it
+			for(int i = 0; i < blockDim.x; i++ )
+			{
+				for(int j = 0; j < blockDim.y; j++)
+				{
+					for(int y = 0; y < 10; y++){
+						count[y] = Scount[y][i][j];
+					}
+				}
+			}			
+		
+		
+
+			for(int i = 0; i < 10; i++){
+				printf("count[%d] is %d\n", i, count[i]);
+			}
+
+		
+
+			//aggregate previous values into count, getting a count of values that size and smaller at digit exp.
+			for(i = 1; i < 10; i++){
+				count[i] += count[i - 1];
+			}
+
+			//based off known number of items in each location, copy things into output sorted by index exp
+			for(i = size-1; i >= 0; i--){
+				output[count[ (array[i]/exp)%10 ] - 1] = array[i];
+				count[ (array[i]/exp)%10 ]--;
+			}
+
+			//copy back into original array so ordering of this digit is preserved for future iterations
+			for(i = 0; i < size; i++){
+				array[i] = output[i];
+				
+			}
 		}
+		__syncthreads();
 	}
 }
 
@@ -235,20 +292,17 @@ int main( int argc, char * argv[] )
 
 
 	//STEP 4
-	//dim3 threadsPerBlock(1, 1);
-	//dim3 numBlocks((size +threadsPerBlock.x-1) / threadsPerBlock.x, (size +threadsPerBlock.y-1) / threadsPerBlock.y);
+	dim3 threadsPerBlock(blockSizeRows, blockSizeCols);
+	dim3 numBlocks((size +threadsPerBlock.x-1) / threadsPerBlock.x, (size +threadsPerBlock.y-1) / threadsPerBlock.y);
 
 
 	//STEP 5
-	matavgKernel<<< 1, 1>>> ( device_nums, size, device_count );
+	matavgKernel<<< numBlocks, threadsPerBlock>>> ( device_nums, size, device_count );
 
 
-	int totalFound;
 	cudaMemcpy( array, device_nums, size*sizeof(int), cudaMemcpyDeviceToHost );
 
 	
-
-
 
 
 
