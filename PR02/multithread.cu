@@ -114,47 +114,66 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 		}
 	}
 
-	__syncthreads();
+
 	//go through each digit
 	for(int exp = 1; max/exp > 0; exp *= 10){
+
+		if(threadIdx.x == 0 && threadIdx.y == 0){
+			printf("At the beginning of looking at %d we're at array:\n", exp);
+			//print out sorted array
+                       for(int index = 0; index < size-1; index++)
+                       {
+                            printf("%d, ", array[index]);
+                       }
+                       printf("%d\n", array[size-1]);
+                 }
+        
+
+
+
 		int *output = (int *)malloc(sizeof(int)*size);
 
 		int i = 0;
 		
 		//array of size ten, for each possible value at this digit		
-		__shared__ int Scount[10][blockSizeRows][blockSizeCols];
+		//__shared__ int Scount[10][blockSizeRows][blockSizeCols];
 		__shared__ int *count;
-		count  = (int *)malloc(sizeof(int)*10);
+		count = (int *)malloc(sizeof(int)*10);
 
 
-		//printf("This thread's x is %d\n", threadIdx.x);
+		//printf("This thread's x is %d with a y of %d\n", threadIdx.x, threadIdx.y);
 
+		int threads = blockDim.x * blockDim.y;
 		//each thread should have a min index and a max index, such that
 		//when put together they cover the domain [0, size-1]
-		int tmin = ((threadIdx.x)*32) + threadIdx.y;
-		int tmax = tmin + 31;
+		int tmin = ((threadIdx.x)*threads) + threadIdx.y;
+		int tmax = tmin + threads - 1;
 		//there should be 1024 threads in total.  smalles tmin is 0, largest tmax is 1023
 		//also tmake should always be 31 higher than tmin (tmax = ((threadIdx.x+1)*32)+threadIdx.y-1, specifically)
-		int min = ((double)tmin/(double)tmax) * size;
-		int max = ((double)tmax/((double)tmax+31)) * size;
+		int min = ((double)tmin/(double)threads) * (double)size;
+		int max = ((double)tmax/(double)threads) * (double)size;
 
-		//printf("this thread will go from %d to %d because tmin is %d and tmax is %d\n", min, max, tmin, tmax);
+		//printf("this thread will go from index %d to %d because tmin is %d and tmax is %d\n", min, max, tmin, tmax);
 
 		//get the count of how many items have each possible value at this digit
 		//(ie number of "2"s, "3"s, etc.)
 		if(min < S)
-		//{
+		{
 
 			//const int item1 = array[aIndex];
 			//printf("thread %d,%d is starting from %d\n", threadIdx.x, threadIdx.y);
 			for(i = min; i < max && i < S; i++){
-				Scount[ (array[i]/exp)%10 ][threadIdx.x][threadIdx.y]++;
-				//printf("Scount[%d][%d][%d] is %d\n", (array[i]/exp)%10, threadIdx.x, 0);
+				//int t = count[ (array[i]/exp) % 10 ];
+				atomicAdd(&count[ (array[i]/exp) % 10 ], 1);
+				//count[ ( array[i]/exp ) % 10 ] = t;
+				//printf("Scount[%d][%d][%d] is %d\n", (array[i]/exp)%10, threadIdx.x, threadIdx.y, Scount[ (array[i]/exp)%10 ][threadIdx.x][threadIdx.y]);
 			}
-		//}
+		
 
-		printf("about to sync...\n");
-		__syncthreads();
+		}
+
+		//printf("about to sync...\n");
+		//__syncthreads();
 		//printf("sync complete...\n");
 
 		//if this is thread(0,0) then do the single threaded portion of the code
@@ -162,24 +181,31 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 		{
 			printf("sync complete!\n");
 			printf("aggregating...\n");
-			//go through shared list and aggregate it
-			for(int i = 0; i < blockDim.x; i++ )
-			{
-				for(int j = 0; j < blockDim.y; j++)
-				{
-					for(int y = 0; y < 10; y++){
-						count[y] = Scount[y][i][j];
-					}
-				}
-			}			
-		
-		
-
-			for(int i = 0; i < 10; i++){
-				printf("count[%d] is %d\n", i, count[i]);
+			
+			for(int t = 0; t < 10; t++){
+				printf("Count[%d] is %d\n", t, count[t]);
 			}
 
+			//printf("block dim x is %d and y is %d\n", blockDim.x, blockDim.y);
+			//go through shared list and aggregate it
+			//for(int i = 0; i < blockDim.x; i++ )
+			//{
+			//	printf("Entering layer COOL\n");
+			//	for(int j = 0; j < blockDim.y; j++)
+			//	{
+			//		printf("Entering layer DOOD\n");
+			//		for(int y = 0; y < 10; y++){
+			//			printf("Entering layer BRUDDDA!!!\n");
+			//			printf("adding to count, from thread %d %d, value %d, to count %d.\n", i, j, Scount[y][i][j], y);
+			//			count[y] += Scount[y][i][j];
+			//			printf("finishing da laya', brudda, we be sittin' at %d, brudda\n", y);
+			//		}
+			//	}
+			//}			
 		
+			//for(int i = 0; i < 10; i++){
+			//	printf("count[%d] is %d\n", i, count[i]);
+			//}
 
 			//aggregate previous values into count, getting a count of values that size and smaller at digit exp.
 			for(i = 1; i < 10; i++){
@@ -197,8 +223,10 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 				array[i] = output[i];
 				
 			}
+		
+			printf("iteration complete\n");
+			//__syncthreads();
 		}
-		__syncthreads();
 	}
 }
 
