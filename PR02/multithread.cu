@@ -119,13 +119,13 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 	for(int exp = 1; max/exp > 0; exp *= 10){
 
 		if(threadIdx.x == 0 && threadIdx.y == 0){
-			printf("At the beginning of looking at %d we're at array:\n", exp);
+			//printf("At the beginning of looking at %d we're at array:\n", exp);
 			//print out sorted array
-                       for(int index = 0; index < size-1; index++)
-                       {
-                            printf("%d, ", array[index]);
-                       }
-                       printf("%d\n", array[size-1]);
+                       //for(int index = 0; index < size-1; index++)
+                       //{
+                       //     printf("%d, ", array[index]);
+                       //}
+                       //printf("%d\n", array[size-1]);
                  }
         
 
@@ -179,26 +179,22 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 		//if this is thread(0,0) then do the single threaded portion of the code
 		if(threadIdx.x == 0 && threadIdx.y == 0)
 		{
-			printf("sync complete!\n");
-			printf("aggregating...\n");
+			//printf("sync complete!\n");
+			//printf("aggregating...\n");
 			
-			for(int t = 0; t < 10; t++){
-				printf("Count[%d] is %d\n", t, count[t]);
-			}
+			//for(int t = 0; t < 10; t++){
+			//	printf("Count[%d] is %d\n", t, count[t]);
+			//}
 
 			//printf("block dim x is %d and y is %d\n", blockDim.x, blockDim.y);
 			//go through shared list and aggregate it
 			//for(int i = 0; i < blockDim.x; i++ )
 			//{
-			//	printf("Entering layer COOL\n");
 			//	for(int j = 0; j < blockDim.y; j++)
 			//	{
-			//		printf("Entering layer DOOD\n");
 			//		for(int y = 0; y < 10; y++){
-			//			printf("Entering layer BRUDDDA!!!\n");
 			//			printf("adding to count, from thread %d %d, value %d, to count %d.\n", i, j, Scount[y][i][j], y);
 			//			count[y] += Scount[y][i][j];
-			//			printf("finishing da laya', brudda, we be sittin' at %d, brudda\n", y);
 			//		}
 			//	}
 			//}			
@@ -224,7 +220,7 @@ __global__ void matavgKernel(int* array, const int S, int *out)
 				
 			}
 		
-			printf("iteration complete\n");
+			//printf("iteration complete\n");
 			//__syncthreads();
 		}
 	}
@@ -273,11 +269,11 @@ int main( int argc, char * argv[] )
 
 
 	//print out initial array
-	for(int index = 0; index < size-1; index++)
-	{
-		printf("%d, ", array[index]);
-	}
-	printf("%d\n", array[size-1]);
+	//for(int index = 0; index < size-1; index++)
+	//{
+	//	printf("%d, ", array[index]);
+	//}
+	//printf("%d\n", array[size-1]);
 
 	/***********************************
 	create a cuda timer to time execution

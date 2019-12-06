@@ -145,11 +145,11 @@ int main( int argc, char * argv[] )
 
 
 	//print out initial array
-	for(int index = 0; index < size-1; index++)
-	{
-		printf("%d, ", array[index]);
-	}
-	printf("%d\n", array[size-1]);
+	//for(int index = 0; index < size-1; index++)
+	//{
+	//	printf("%d, ", array[index]);
+	//}
+	//printf("%d\n", array[size-1]);
 
 	/***********************************
 	create a cuda timer to time execution

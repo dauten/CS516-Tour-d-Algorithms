@@ -1,0 +1,5 @@
+Dale Auten dauten@siue.edu 800576062
+
+Compile with `make` and run with `./<executable name> <size> <seed> <bit to output sorted array>`
+
+multithread doesn't return the correct results but performs the correct actions (more details in report section 4.3)
